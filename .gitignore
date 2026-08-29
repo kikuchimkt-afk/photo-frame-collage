@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+dist-ssr/
+*.local
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# logs / cache
+npm-debug.log*
+.DS_Store
+.cache/
+.vercel
+
+# IDE
+.idea/
+.vscode/
+*.sw?
