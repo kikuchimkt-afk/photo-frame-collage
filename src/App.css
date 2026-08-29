@@ -1,13 +1,13 @@
 :root {
-  --bg0: #1b2430;
-  --bg1: #243447;
-  --ink: #f4f7fb;
-  --muted: #a9b6c5;
-  --accent: #3d9aad;
-  --accent-2: #5eb3c3;
-  --card: rgba(255, 255, 255, 0.06);
-  --line: rgba(255, 255, 255, 0.12);
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --bg0: #e8eef2;
+  --bg1: #f7f9fb;
+  --ink: #1c2a33;
+  --muted: #5d7080;
+  --accent: #2f6f7e;
+  --accent-2: #3f8a99;
+  --card: rgba(255, 255, 255, 0.82);
+  --line: rgba(28, 42, 51, 0.12);
+  --shadow: 0 14px 40px rgba(28, 55, 70, 0.08);
   --radius: 18px;
   --font: "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
     Meiryo, sans-serif;
@@ -33,9 +33,9 @@ body,
 body {
   min-width: 320px;
   background:
-    radial-gradient(900px 500px at 0% 0%, rgba(61, 154, 173, 0.28), transparent 55%),
-    radial-gradient(700px 480px at 100% 10%, rgba(201, 162, 39, 0.14), transparent 50%),
-    linear-gradient(165deg, var(--bg0), var(--bg1));
+    radial-gradient(1000px 520px at 0% -10%, rgba(47, 111, 126, 0.16), transparent 55%),
+    radial-gradient(800px 480px at 100% 0%, rgba(120, 140, 110, 0.12), transparent 50%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
 }
 
 button,
@@ -59,7 +59,7 @@ button {
 
 .brand {
   margin: 0 0 0.35rem;
-  color: var(--accent-2);
+  color: var(--accent);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -125,10 +125,10 @@ button {
   min-height: 420px;
   border-radius: 14px;
   background:
-    linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%);
+    linear-gradient(45deg, rgba(28, 42, 51, 0.04) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(28, 42, 51, 0.04) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(28, 42, 51, 0.04) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(28, 42, 51, 0.04) 75%);
   background-size: 24px 24px;
   background-position: 0 0, 0 12px, 12px -12px, -12px 0;
   border: 1px solid var(--line);
@@ -140,7 +140,8 @@ button {
   display: block;
   max-width: 100%;
   height: auto !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow);
+  background: #fff;
 }
 
 .preview-actions,
@@ -165,12 +166,12 @@ button {
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #062028;
+  color: #fff;
   font-weight: 700;
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: #fff;
   border-color: var(--line);
   color: var(--ink);
 }
@@ -197,7 +198,7 @@ button {
   text-align: left;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(0, 0, 0, 0.18);
+  background: #fff;
   color: var(--ink);
   padding: 0.7rem 0.75rem;
   display: grid;
@@ -206,8 +207,8 @@ button {
 
 .option-card.active,
 .frame-card.active {
-  border-color: var(--accent-2);
-  box-shadow: 0 0 0 2px rgba(94, 179, 195, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 111, 126, 0.18);
 }
 
 .option-card span,
@@ -228,7 +229,7 @@ button {
   background:
     linear-gradient(var(--mat), var(--mat)) center / 58% 58% no-repeat,
     var(--outer);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--line);
   margin-bottom: 0.35rem;
 }
 

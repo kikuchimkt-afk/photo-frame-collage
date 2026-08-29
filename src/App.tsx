@@ -60,12 +60,12 @@ export default function App() {
   };
 
   const handleDownload = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
     if (!image) {
       window.alert("先に写真を選んでください。");
       return;
     }
+    const canvas = document.createElement("canvas");
+    renderCollage(canvas, image, frame, aspect, transform);
     downloadCanvas(
       canvas,
       `collage-${frame.id}-${aspect.ratioLabel.replace(":", "x")}.png`,
