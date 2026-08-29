@@ -1,10 +1,22 @@
 import type { FrameStyle } from "./types";
 
-/** あらかじめ登録した額縁10種 */
+/** 登録済み額縁（先頭は提供イラスト枠） */
 export const FRAMES: FrameStyle[] = [
+  {
+    id: "ecc-daigakumae",
+    name: "ECCジュニア大学前教室",
+    mood: "上下イラスト枠（公式テンプレ）",
+    kind: "overlay",
+    overlaySrc: "/frames/ecc-daigakumae-overlay.png",
+    thumbSrc: "/frames/ecc-daigakumae-thumb.png",
+    cream: "#fdf5e0",
+    photoTopRatio: 118 / 1024,
+    photoBottomRatio: 946 / 1024,
+  },
   {
     id: "classic-oak",
     name: "クラシックオーク",
+    kind: "solid",
     outer: "#6b3f22",
     mat: "#f4efe6",
     accent: "#3f2414",
@@ -15,6 +27,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "gold-gallery",
     name: "ゴールドギャラリー",
+    kind: "solid",
     outer: "#c9a227",
     mat: "#fffaf0",
     accent: "#8a6a12",
@@ -25,6 +38,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "matte-black",
     name: "マットブラック",
+    kind: "solid",
     outer: "#1a1a1a",
     mat: "#f2f2f2",
     accent: "#444",
@@ -35,6 +49,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "ivory-slim",
     name: "アイボリースリム",
+    kind: "solid",
     outer: "#e8dfd0",
     mat: "#ffffff",
     accent: "#cfc3ae",
@@ -45,6 +60,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "navy-museum",
     name: "ネイビーミュージアム",
+    kind: "solid",
     outer: "#1c2f4a",
     mat: "#eef2f7",
     accent: "#0f1b2c",
@@ -55,6 +71,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "rose-soft",
     name: "ローズソフト",
+    kind: "solid",
     outer: "#c4878a",
     mat: "#fff5f5",
     accent: "#9a5d61",
@@ -65,6 +82,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "silver-modern",
     name: "シルバーモダン",
+    kind: "solid",
     outer: "#9aa3ad",
     mat: "#f7f8fa",
     accent: "#6d767f",
@@ -75,6 +93,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "walnut-deep",
     name: "ディープウォルナット",
+    kind: "solid",
     outer: "#3b2418",
     mat: "#efe6d8",
     accent: "#22140d",
@@ -85,6 +104,7 @@ export const FRAMES: FrameStyle[] = [
   {
     id: "mint-fresh",
     name: "ミントフレッシュ",
+    kind: "solid",
     outer: "#5f9e90",
     mat: "#f3fbf8",
     accent: "#3f7267",
@@ -92,35 +112,25 @@ export const FRAMES: FrameStyle[] = [
     matRatio: 0.05,
     mood: "爽やかな緑",
   },
-  {
-    id: "round-polaroid",
-    name: "ポラロイド風",
-    outer: "#f5f5f5",
-    mat: "#ffffff",
-    accent: "#d8d8d8",
-    outerRatio: 0.02,
-    matRatio: 0.12,
-    photoRadiusRatio: 0.01,
-    mood: "下余白のある写真風",
-  },
 ];
 
-/** ポラロイド風は下マットを厚くする */
 export function getInsets(frame: FrameStyle, width: number, height: number) {
-  const short = Math.min(width, height);
-  const outer = short * frame.outerRatio;
-  const mat = short * frame.matRatio;
-
-  if (frame.id === "round-polaroid") {
+  if (frame.kind === "overlay") {
+    const top = height * (frame.photoTopRatio ?? 0.12);
+    const bottomEdge = height * (frame.photoBottomRatio ?? 0.9);
     return {
-      outer,
-      left: outer + mat * 0.55,
-      right: outer + mat * 0.55,
-      top: outer + mat * 0.45,
-      bottom: outer + mat * 1.55,
-      radius: short * (frame.photoRadiusRatio ?? 0),
+      outer: 0,
+      left: 0,
+      right: 0,
+      top,
+      bottom: height - bottomEdge,
+      radius: 0,
     };
   }
+
+  const short = Math.min(width, height);
+  const outer = short * (frame.outerRatio ?? 0.04);
+  const mat = short * (frame.matRatio ?? 0.05);
 
   return {
     outer,

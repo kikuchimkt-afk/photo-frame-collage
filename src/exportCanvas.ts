@@ -50,6 +50,7 @@ export function renderCollage(
   frame: FrameStyle,
   aspect: AspectPreset,
   transform: PhotoTransform,
+  overlayImage: HTMLImageElement | null = null,
 ) {
   const { width, height } = aspect;
   canvas.width = width;
@@ -58,12 +59,37 @@ export function renderCollage(
   if (!ctx) return;
 
   const insets = getInsets(frame, width, height);
+  const photoX = insets.left;
+  const photoY = insets.top;
+  const photoW = width - insets.left - insets.right;
+  const photoH = height - insets.top - insets.bottom;
 
-  // 外側額縁
-  ctx.fillStyle = frame.outer;
+  if (frame.kind === "overlay") {
+    ctx.fillStyle = frame.cream ?? "#fdf5e0";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "#d9dee3";
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+
+    if (img) {
+      coverDraw(ctx, img, photoX, photoY, photoW, photoH, transform);
+    } else {
+      ctx.fillStyle = "#6b7c89";
+      ctx.font = `${Math.floor(Math.min(photoW, photoH) * 0.05)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("写真を選択", photoX + photoW / 2, photoY + photoH / 2);
+    }
+
+    if (overlayImage) {
+      ctx.drawImage(overlayImage, 0, 0, width, height);
+    }
+    return;
+  }
+
+  ctx.fillStyle = frame.outer ?? "#333";
   ctx.fillRect(0, 0, width, height);
 
-  // アクセントの細い線
   if (frame.accent) {
     ctx.strokeStyle = frame.accent;
     ctx.lineWidth = Math.max(2, insets.outer * 0.18);
@@ -75,8 +101,7 @@ export function renderCollage(
     );
   }
 
-  // マット
-  ctx.fillStyle = frame.mat;
+  ctx.fillStyle = frame.mat ?? "#fff";
   ctx.fillRect(
     insets.outer,
     insets.outer,
@@ -84,12 +109,6 @@ export function renderCollage(
     height - insets.outer * 2,
   );
 
-  const photoX = insets.left;
-  const photoY = insets.top;
-  const photoW = width - insets.left - insets.right;
-  const photoH = height - insets.top - insets.bottom;
-
-  // 写真領域の下地
   ctx.fillStyle = "#d9dee3";
   if (insets.radius > 0) {
     roundRect(ctx, photoX, photoY, photoW, photoH, insets.radius);
@@ -114,7 +133,6 @@ export function renderCollage(
     ctx.fillText("写真を選択", photoX + photoW / 2, photoY + photoH / 2);
   }
 
-  // 内側の影線
   ctx.strokeStyle = "rgba(0,0,0,0.18)";
   ctx.lineWidth = Math.max(1, Math.min(width, height) * 0.002);
   ctx.strokeRect(photoX, photoY, photoW, photoH);
@@ -125,4 +143,13 @@ export function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
   link.download = filename;
   link.href = canvas.toDataURL("image/png");
   link.click();
+}
+
+export function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`failed to load ${src}`));
+    img.src = src;
+  });
 }

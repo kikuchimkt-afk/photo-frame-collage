@@ -1,0 +1,18 @@
+{
+  "id": "ecc-daigakumae",
+  "name": "ECCジュニア大学前教室",
+  "width": 576,
+  "height": 1024,
+  "topEnd": 118,
+  "dogTop": 755,
+  "photoBottom": 946,
+  "photoTopRatio": 0.115234375,
+  "photoBottomRatio": 0.923828125,
+  "cream": [
+    253,
+    245,
+    224
+  ],
+  "overlay": "/frames/ecc-daigakumae-overlay.png",
+  "thumb": "/frames/ecc-daigakumae-thumb.png"
+}

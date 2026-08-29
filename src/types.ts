@@ -10,23 +10,26 @@ export type AspectPreset = {
 export type FrameStyle = {
   id: string;
   name: string;
-  /** 外側の額縁色 */
-  outer: string;
-  /** 内側マット色 */
-  mat: string;
-  /** アクセント線 */
-  accent?: string;
-  /** 外枠の太さ（短辺に対する割合） */
-  outerRatio: number;
-  /** マットの太さ（短辺に対する割合） */
-  matRatio: number;
-  /** 写真の角丸（短辺に対する割合） */
-  photoRadiusRatio?: number;
   mood: string;
+  kind: "solid" | "overlay";
+  /** solid 用 */
+  outer?: string;
+  mat?: string;
+  accent?: string;
+  outerRatio?: number;
+  matRatio?: number;
+  photoRadiusRatio?: number;
+  /** overlay 用（イラスト額縁） */
+  overlaySrc?: string;
+  thumbSrc?: string;
+  cream?: string;
+  /** 写真領域の上端・下端（キャンバス高さに対する比率） */
+  photoTopRatio?: number;
+  photoBottomRatio?: number;
 };
 
 export type PhotoTransform = {
   scale: number;
-  offsetX: number; // -1..1 relative to photo area
+  offsetX: number;
   offsetY: number;
 };

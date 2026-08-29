@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ASPECT_PRESETS } from "./aspects";
-import { downloadCanvas, renderCollage } from "./exportCanvas";
+import { downloadCanvas, loadImage, renderCollage } from "./exportCanvas";
 import { FRAMES } from "./frames";
 import type { AspectPreset, FrameStyle, PhotoTransform } from "./types";
 import "./App.css";
@@ -16,6 +16,7 @@ export default function App() {
   const [aspect, setAspect] = useState<AspectPreset>(ASPECT_PRESETS[0]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const [overlayImage, setOverlayImage] = useState<HTMLImageElement | null>(null);
   const [transform, setTransform] = useState<PhotoTransform>(DEFAULT_TRANSFORM);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -37,10 +38,28 @@ export default function App() {
   }, [photoUrl]);
 
   useEffect(() => {
+    let cancelled = false;
+    if (frame.kind !== "overlay" || !frame.overlaySrc) {
+      setOverlayImage(null);
+      return;
+    }
+    void loadImage(frame.overlaySrc)
+      .then((img) => {
+        if (!cancelled) setOverlayImage(img);
+      })
+      .catch(() => {
+        if (!cancelled) setOverlayImage(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [frame]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    renderCollage(canvas, image, frame, aspect, transform);
-  }, [image, frame, aspect, transform]);
+    renderCollage(canvas, image, frame, aspect, transform, overlayImage);
+  }, [image, frame, aspect, transform, overlayImage]);
 
   const previewStyle = useMemo(() => {
     const maxW = 360;
@@ -64,8 +83,12 @@ export default function App() {
       window.alert("先に写真を選んでください。");
       return;
     }
+    if (frame.kind === "overlay" && !overlayImage) {
+      window.alert("額縁画像の読み込み中です。少し待ってから再度お試しください。");
+      return;
+    }
     const canvas = document.createElement("canvas");
-    renderCollage(canvas, image, frame, aspect, transform);
+    renderCollage(canvas, image, frame, aspect, transform, overlayImage);
     downloadCanvas(
       canvas,
       `collage-${frame.id}-${aspect.ratioLabel.replace(":", "x")}.png`,
@@ -151,13 +174,19 @@ export default function App() {
                   className={`frame-card${frame.id === f.id ? " active" : ""}`}
                   onClick={() => setFrame(f)}
                   style={
-                    {
-                      "--outer": f.outer,
-                      "--mat": f.mat,
-                    } as CSSProperties
+                    f.kind === "solid"
+                      ? ({
+                          "--outer": f.outer,
+                          "--mat": f.mat,
+                        } as CSSProperties)
+                      : undefined
                   }
                 >
-                  <span className="frame-swatch" aria-hidden />
+                  {f.kind === "overlay" && f.thumbSrc ? (
+                    <img className="frame-thumb" src={f.thumbSrc} alt="" />
+                  ) : (
+                    <span className="frame-swatch" aria-hidden />
+                  )}
                   <span className="frame-name">{f.name}</span>
                   <small>{f.mood}</small>
                 </button>
