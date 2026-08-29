@@ -1,7 +1,7 @@
 import type { FrameStyle } from "./types";
 
-/** 登録済み額縁（先頭は提供イラスト枠） */
-export const FRAMES: FrameStyle[] = [
+/** 初期登録の額縁（localStorage 未設定時の初期値） */
+export const DEFAULT_FRAMES: FrameStyle[] = [
   {
     id: "ecc-daigakumae",
     name: "ECCジュニア大学前教室",
@@ -140,4 +140,11 @@ export function getInsets(frame: FrameStyle, width: number, height: number) {
     bottom: outer + mat,
     radius: short * (frame.photoRadiusRatio ?? 0),
   };
+}
+
+export function createFrameId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `frame-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }

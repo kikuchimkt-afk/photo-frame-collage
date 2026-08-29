@@ -104,6 +104,107 @@ button {
   font-size: 1.02rem;
 }
 
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.panel-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.btn-ghost.compact,
+.btn-primary.compact {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.btn-ghost.danger {
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.25);
+}
+
+.frame-card-wrap {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.frame-card-wrap.active .frame-delete {
+  border-color: rgba(47, 111, 126, 0.35);
+}
+
+.frame-delete {
+  width: 100%;
+}
+
+.frame-add-form {
+  margin-top: 0.9rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.frame-add-form h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.field span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.field input[type="text"],
+.field input:not([type="color"]):not([type="range"]):not([type="file"]) {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+  color: var(--ink);
+}
+
+.field input[type="color"] {
+  width: 100%;
+  height: 2.4rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.2rem;
+}
+
+.color-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.error {
+  margin: 0;
+  color: #b42318;
+  font-size: 0.88rem;
+}
+
+.reset-frames {
+  margin-top: 0.85rem;
+}
+
 .preview-meta {
   display: flex;
   justify-content: space-between;

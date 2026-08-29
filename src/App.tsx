@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FrameLibrary } from "./components/FrameLibrary";
 import { ASPECT_PRESETS } from "./aspects";
 import { downloadCanvas, loadImage, renderCollage } from "./exportCanvas";
-import { FRAMES } from "./frames";
+import { DEFAULT_FRAMES } from "./frames";
+import { loadFrames, resetFramesToDefault, saveFrames } from "./frameStorage";
 import type { AspectPreset, FrameStyle, PhotoTransform } from "./types";
 import "./App.css";
 
@@ -12,7 +14,9 @@ const DEFAULT_TRANSFORM: PhotoTransform = {
 };
 
 export default function App() {
-  const [frame, setFrame] = useState<FrameStyle>(FRAMES[0]);
+  const [frames, setFrames] = useState<FrameStyle[]>(() => DEFAULT_FRAMES);
+  const [ready, setReady] = useState(false);
+  const [frame, setFrame] = useState<FrameStyle>(DEFAULT_FRAMES[0]);
   const [aspect, setAspect] = useState<AspectPreset>(ASPECT_PRESETS[0]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -20,6 +24,13 @@ export default function App() {
   const [transform, setTransform] = useState<PhotoTransform>(DEFAULT_TRANSFORM);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const loaded = loadFrames();
+    setFrames(loaded);
+    setFrame(loaded[0] ?? DEFAULT_FRAMES[0]);
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -70,6 +81,14 @@ export default function App() {
     };
   }, [aspect]);
 
+  const persistFrames = (next: FrameStyle[]) => {
+    setFrames(next);
+    saveFrames(next);
+    if (!next.some((f) => f.id === frame.id)) {
+      setFrame(next[0] ?? DEFAULT_FRAMES[0]);
+    }
+  };
+
   const handleFile = (file: File | undefined) => {
     if (!file) return;
     if (photoUrl) URL.revokeObjectURL(photoUrl);
@@ -95,13 +114,21 @@ export default function App() {
     );
   };
 
+  if (!ready) {
+    return (
+      <div className="app">
+        <p className="lead">読み込み中…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <header className="hero">
         <p className="brand">Photo Frame Collage</p>
         <h1>額縁に1枚入れて、Instagram向けに書き出す</h1>
         <p className="subtitle">
-          登録済みの額縁10種から選び、写真をはめ込みます。フィード推奨の4:5など、投稿先に合わせた比率でPNG保存できます。
+          額縁は追加・削除でき、この端末のローカルストレージに保存されます。Instagram向け比率でPNG書き出しできます。
         </p>
       </header>
 
@@ -164,35 +191,17 @@ export default function App() {
             </div>
           </section>
 
-          <section className="panel">
-            <h2>額縁（10種）</h2>
-            <div className="frame-grid">
-              {FRAMES.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  className={`frame-card${frame.id === f.id ? " active" : ""}`}
-                  onClick={() => setFrame(f)}
-                  style={
-                    f.kind === "solid"
-                      ? ({
-                          "--outer": f.outer,
-                          "--mat": f.mat,
-                        } as CSSProperties)
-                      : undefined
-                  }
-                >
-                  {f.kind === "overlay" && f.thumbSrc ? (
-                    <img className="frame-thumb" src={f.thumbSrc} alt="" />
-                  ) : (
-                    <span className="frame-swatch" aria-hidden />
-                  )}
-                  <span className="frame-name">{f.name}</span>
-                  <small>{f.mood}</small>
-                </button>
-              ))}
-            </div>
-          </section>
+          <FrameLibrary
+            frames={frames}
+            selectedId={frame.id}
+            onSelect={setFrame}
+            onChange={persistFrames}
+            onResetDefaults={() => {
+              const next = resetFramesToDefault();
+              setFrames(next);
+              setFrame(next[0]);
+            }}
+          />
 
           <section className="panel">
             <h2>写真の位置・大きさ</h2>
@@ -252,7 +261,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <p>まずは1枚はめ込みの仕様です。書き出しは端末内で完結します。</p>
+        <p>額縁データはこの端末に保存されます。書き出しも端末内で完結します。</p>
       </footer>
     </div>
   );
