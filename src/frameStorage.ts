@@ -1,7 +1,7 @@
 import { DEFAULT_FRAMES } from "./frames";
 import type { FrameStyle } from "./types";
 
-const STORAGE_KEY = "photo-frame-collage-frames-v1";
+const STORAGE_KEY = "photo-frame-collage-frames-v3";
 
 function cloneDefaults(): FrameStyle[] {
   return DEFAULT_FRAMES.map((f) => ({ ...f }));

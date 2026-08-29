@@ -1,10 +1,9 @@
 {
   "id": "ecc-daigakumae",
-  "name": "ECCジュニア大学前教室",
+  "kind": "banded",
   "width": 576,
   "height": 1024,
   "topEnd": 118,
-  "dogTop": 755,
   "photoBottom": 946,
   "photoTopRatio": 0.115234375,
   "photoBottomRatio": 0.923828125,
@@ -13,6 +12,13 @@
     245,
     224
   ],
-  "overlay": "/frames/ecc-daigakumae-overlay.png",
+  "topBand": "/frames/ecc-daigakumae-top.png",
+  "bottomBand": "/frames/ecc-daigakumae-bottom.png",
+  "mascot": "/frames/ecc-daigakumae-mascot.png",
+  "mascotDefault": {
+    "x": 0.017361111111111112,
+    "y": 0.701171875,
+    "scale": 0.4427083333333333
+  },
   "thumb": "/frames/ecc-daigakumae-thumb.png"
 }

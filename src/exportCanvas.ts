@@ -1,5 +1,10 @@
 import { getInsets } from "./frames";
-import type { AspectPreset, FrameStyle, PhotoTransform } from "./types";
+import type {
+  AspectPreset,
+  FrameStyle,
+  MascotPlacement,
+  PhotoTransform,
+} from "./types";
 
 function coverDraw(
   ctx: CanvasRenderingContext2D,
@@ -44,13 +49,47 @@ function roundRect(
   ctx.closePath();
 }
 
+function drawBand(
+  ctx: CanvasRenderingContext2D,
+  band: HTMLImageElement,
+  y: number,
+  canvasW: number,
+  bandH: number,
+) {
+  ctx.drawImage(band, 0, y, canvasW, bandH);
+}
+
+function drawMascot(
+  ctx: CanvasRenderingContext2D,
+  mascot: HTMLImageElement,
+  placement: MascotPlacement,
+  canvasW: number,
+  canvasH: number,
+) {
+  if (!placement.visible) return;
+  const drawW = canvasW * placement.scale;
+  const aspect = mascot.naturalHeight / Math.max(1, mascot.naturalWidth);
+  const drawH = drawW * aspect;
+  const x = placement.x * canvasW;
+  const y = placement.y * canvasH;
+  ctx.drawImage(mascot, x, y, drawW, drawH);
+}
+
+export type LayerImages = {
+  overlay?: HTMLImageElement | null;
+  topBand?: HTMLImageElement | null;
+  bottomBand?: HTMLImageElement | null;
+  mascot?: HTMLImageElement | null;
+};
+
 export function renderCollage(
   canvas: HTMLCanvasElement,
   img: HTMLImageElement | null,
   frame: FrameStyle,
   aspect: AspectPreset,
   transform: PhotoTransform,
-  overlayImage: HTMLImageElement | null = null,
+  layers: LayerImages = {},
+  mascotPlacement: MascotPlacement | null = null,
 ) {
   const { width, height } = aspect;
   canvas.width = width;
@@ -63,6 +102,38 @@ export function renderCollage(
   const photoY = insets.top;
   const photoW = width - insets.left - insets.right;
   const photoH = height - insets.top - insets.bottom;
+
+  if (frame.kind === "banded") {
+    ctx.fillStyle = frame.cream ?? "#fdf5e0";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "#d9dee3";
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+
+    if (img) {
+      coverDraw(ctx, img, photoX, photoY, photoW, photoH, transform);
+    } else {
+      ctx.fillStyle = "#6b7c89";
+      ctx.font = `${Math.floor(Math.min(photoW, photoH) * 0.05)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("写真を選択", photoX + photoW / 2, photoY + photoH / 2);
+    }
+
+    // 上下帯は固定（写真の上に重ねる）
+    if (layers.topBand) {
+      drawBand(ctx, layers.topBand, 0, width, photoY);
+    }
+    if (layers.bottomBand) {
+      drawBand(ctx, layers.bottomBand, height - insets.bottom, width, insets.bottom);
+    }
+
+    // マスコットは別レイヤー
+    if (layers.mascot && mascotPlacement) {
+      drawMascot(ctx, layers.mascot, mascotPlacement, width, height);
+    }
+    return;
+  }
 
   if (frame.kind === "overlay") {
     ctx.fillStyle = frame.cream ?? "#fdf5e0";
@@ -81,8 +152,8 @@ export function renderCollage(
       ctx.fillText("写真を選択", photoX + photoW / 2, photoY + photoH / 2);
     }
 
-    if (overlayImage) {
-      ctx.drawImage(overlayImage, 0, 0, width, height);
+    if (layers.overlay) {
+      ctx.drawImage(layers.overlay, 0, 0, width, height);
     }
     return;
   }

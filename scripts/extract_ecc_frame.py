@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw
 import json
 import os
 
@@ -7,122 +7,118 @@ out_dir = r"C:\Users\user\Documents\GitHub\photo-frame-collage\public\frames"
 
 im = Image.open(src).convert("RGBA")
 w, h = im.size
-src_px = im.load()
 
 TOP_END = 118
 PHOTO_BOTTOM = 946
-DOG_TOP = 755
-DOG_RIGHT = 265
+DOG_TOP = 760
+DOG_RIGHT = 255
 
 cream_rgb = im.getpixel((w // 2, 108))[:3]
-cream = cream_rgb + (255,)
+footer_cream = im.getpixel((w // 2, PHOTO_BOTTOM + 20))[:3]
 transparent = (0, 0, 0, 0)
 
 
-def is_dog_like(r: int, g: int, b: int) -> bool:
-    # yellow / orange fur
-    if r > 165 and g > 125 and b < 170 and (r - b) > 35:
+def is_mascot_pixel(r: int, g: int, b: int) -> bool:
+    mean = (r + g + b) / 3
+    # gray carpet / asphalt
+    if abs(r - g) < 28 and abs(g - b) < 28 and abs(r - b) < 28 and 30 < mean < 200:
+        return False
+    # cream / white bg
+    if r > 235 and g > 225 and b > 195:
+        return False
+    # yellow / orange fur (main body)
+    if r >= 150 and g >= 110 and b <= 165 and (r - b) >= 30 and (r - g) > -10:
         return True
-    # cream knit sweater
-    if r > 195 and g > 185 and b > 155 and abs(r - g) < 45 and (r - b) < 70:
+    # cream sweater
+    if r > 190 and g > 180 and b > 150 and abs(r - g) < 40:
         return True
-    # green shorts / clover / leaves
-    if g > 95 and g >= r + 12 and g >= b + 12:
+    # green shorts / clover (not neon tags: require not too dark)
+    if 90 < g < 200 and g >= r + 18 and g >= b + 18 and mean > 80:
         return True
-    # dark linework / nose / eyes
-    if r < 55 and g < 55 and b < 55:
+    # dark facial features
+    if mean < 45 and max(r, g, b) < 60:
         return True
-    # book page / chick yellow
-    if r > 210 and g > 190 and b > 120 and (r - b) > 20:
+    # book / chick
+    if r > 200 and g > 170 and b < 160 and (r - b) > 40:
         return True
-    # soft cheek / ear shadow warm brown
-    if 120 < r < 190 and 80 < g < 150 and b < 110 and (r - b) > 40:
+    if r > 220 and g > 210 and b > 160 and (r - b) < 80:
         return True
     return False
 
 
-def is_grayish_photo(r: int, g: int, b: int) -> bool:
-    mx, mn = max(r, g, b), min(r, g, b)
-    sat = mx - mn
-    mean = (r + g + b) / 3
-    return sat < 40 and 35 < mean < 210
+# Fixed bands
+top = im.crop((0, 0, w, TOP_END))
+bottom = im.crop((0, PHOTO_BOTTOM, w, h)).copy()
+bp = bottom.load()
+# Only scrub obvious dog feet on far left of footer
+for y in range(bottom.size[1]):
+    for x in range(0, 110):
+        r, g, b, a = bp[x, y]
+        if is_mascot_pixel(r, g, b) and not (r > 230 and g > 220 and b > 190):
+            bp[x, y] = footer_cream + (255,)
 
-
-# --- thumb / solid frame (cream hole, no child) ---
-thumb = Image.new("RGBA", (w, h), cream)
-# paste header
-thumb.paste(im.crop((0, 0, w, TOP_END)), (0, 0))
-# paste cream footer strip
-thumb.paste(im.crop((0, PHOTO_BOTTOM, w, h)), (0, PHOTO_BOTTOM))
-# paste cleaned dog onto cream
-tp = thumb.load()
-for y in range(DOG_TOP, h):
-    for x in range(0, min(DOG_RIGHT + 50, w)):
-        r, g, b, a = src_px[x, y]
-        if y >= PHOTO_BOTTOM:
-            # footer already pasted; keep dog pixels that overlap footer too
-            if is_dog_like(r, g, b):
-                tp[x, y] = (r, g, b, 255)
+# Mascot region
+mascot_full = im.crop((0, DOG_TOP, DOG_RIGHT, h)).copy()
+mp = mascot_full.load()
+mw, mh = mascot_full.size
+for y in range(mh):
+    for x in range(mw):
+        r, g, b, a = mp[x, y]
+        # hanging toy tags sit above the head — drop non-fur in upper band
+        if y < 35 and not (
+            r >= 150 and g >= 110 and b <= 165 and (r - b) >= 30
+        ):
+            mp[x, y] = transparent
+            continue
+        if is_mascot_pixel(r, g, b):
+            mp[x, y] = (r, g, b, 255)
         else:
-            if is_dog_like(r, g, b):
-                tp[x, y] = (r, g, b, 255)
-            else:
-                tp[x, y] = cream
+            mp[x, y] = transparent
 
-# --- overlay: transparent photo window ---
+bbox = mascot_full.getbbox()
+mascot = mascot_full.crop(bbox) if bbox else mascot_full
+
+# Thumb
+thumb = Image.new("RGBA", (w, h), cream_rgb + (255,))
+thumb.paste(top, (0, 0))
+thumb.paste(bottom, (0, PHOTO_BOTTOM))
+mx = 10
+my = PHOTO_BOTTOM - mascot.size[1] + 36
+thumb.paste(mascot, (mx, my), mascot)
+
 overlay = Image.new("RGBA", (w, h), transparent)
-# header opaque
-overlay.paste(im.crop((0, 0, w, TOP_END)), (0, 0))
-# footer cream strip
-overlay.paste(im.crop((0, PHOTO_BOTTOM, w, h)), (0, PHOTO_BOTTOM))
-op = overlay.load()
-for y in range(DOG_TOP, h):
-    for x in range(0, min(DOG_RIGHT + 50, w)):
-        r, g, b, a = src_px[x, y]
-        if y >= PHOTO_BOTTOM:
-            if is_dog_like(r, g, b):
-                op[x, y] = (r, g, b, 255)
-        else:
-            if is_dog_like(r, g, b):
-                op[x, y] = (r, g, b, 255)
-            # else leave transparent so user photo shows, OR put cream under dog only
-            # Prefer cream plate under dog so photo doesn't show through gaps in fur
-            elif x < DOG_RIGHT - 10:
-                op[x, y] = cream
-
-# Fill cream under-dog plate more solidly for nicer silhouette
-for y in range(DOG_TOP, PHOTO_BOTTOM):
-    for x in range(0, DOG_RIGHT - 10):
-        if op[x, y][3] == 0:
-            op[x, y] = cream
-        r, g, b, a = op[x, y]
-        if a and is_grayish_photo(r, g, b):
-            op[x, y] = cream
-
-top = thumb.crop((0, 0, w, TOP_END))
-bottom = thumb.crop((0, DOG_TOP, w, h))
+overlay.paste(top, (0, 0))
+overlay.paste(bottom, (0, PHOTO_BOTTOM))
 
 os.makedirs(out_dir, exist_ok=True)
 top.save(os.path.join(out_dir, "ecc-daigakumae-top.png"))
 bottom.save(os.path.join(out_dir, "ecc-daigakumae-bottom.png"))
+mascot.save(os.path.join(out_dir, "ecc-daigakumae-mascot.png"))
 overlay.save(os.path.join(out_dir, "ecc-daigakumae-overlay.png"))
 thumb.save(os.path.join(out_dir, "ecc-daigakumae-thumb.png"))
 
 meta = {
     "id": "ecc-daigakumae",
-    "name": "ECCジュニア大学前教室",
+    "kind": "banded",
     "width": w,
     "height": h,
     "topEnd": TOP_END,
-    "dogTop": DOG_TOP,
     "photoBottom": PHOTO_BOTTOM,
     "photoTopRatio": TOP_END / h,
     "photoBottomRatio": PHOTO_BOTTOM / h,
     "cream": list(cream_rgb),
-    "overlay": "/frames/ecc-daigakumae-overlay.png",
+    "topBand": "/frames/ecc-daigakumae-top.png",
+    "bottomBand": "/frames/ecc-daigakumae-bottom.png",
+    "mascot": "/frames/ecc-daigakumae-mascot.png",
+    "mascotDefault": {
+        "x": mx / w,
+        "y": my / h,
+        "scale": mascot.size[0] / w,
+    },
     "thumb": "/frames/ecc-daigakumae-thumb.png",
 }
 with open(os.path.join(out_dir, "ecc-daigakumae.json"), "w", encoding="utf-8") as f:
     json.dump(meta, f, ensure_ascii=False, indent=2)
 
-print("done", meta)
+print("top", top.size, "bottom", bottom.size, "mascot", mascot.size)
+print(meta["mascotDefault"])

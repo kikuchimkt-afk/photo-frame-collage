@@ -9,6 +9,7 @@ type Props = {
   onSelect: (frame: FrameStyle) => void;
   onChange: (frames: FrameStyle[]) => void;
   onResetDefaults: () => void;
+  onOpenPartsStudio: () => void;
 };
 
 type AddMode = "closed" | "solid" | "overlay";
@@ -19,6 +20,7 @@ export function FrameLibrary({
   onSelect,
   onChange,
   onResetDefaults,
+  onOpenPartsStudio,
 }: Props) {
   const [mode, setMode] = useState<AddMode>("closed");
   const [name, setName] = useState("");
@@ -129,6 +131,9 @@ export function FrameLibrary({
       <div className="panel-head">
         <h2>額縁（{frames.length}種）</h2>
         <div className="panel-head-actions">
+          <button type="button" className="btn-ghost compact" onClick={onOpenPartsStudio}>
+            パーツ作成
+          </button>
           <button type="button" className="btn-ghost compact" onClick={() => setMode("solid")}>
             色枠を追加
           </button>
@@ -137,7 +142,7 @@ export function FrameLibrary({
             className="btn-ghost compact"
             onClick={() => setMode("overlay")}
           >
-            イラスト枠を追加
+            一枚絵枠を追加
           </button>
         </div>
       </div>
@@ -161,7 +166,7 @@ export function FrameLibrary({
                   : undefined
               }
             >
-              {f.kind === "overlay" && f.thumbSrc ? (
+              {(f.kind === "overlay" || f.kind === "banded") && f.thumbSrc ? (
                 <img className="frame-thumb" src={f.thumbSrc} alt="" />
               ) : (
                 <span className="frame-swatch" aria-hidden />
@@ -282,7 +287,7 @@ export function FrameLibrary({
         onClick={() => {
           if (
             window.confirm(
-              "額縁一覧を初期状態（標準10種）に戻します。追加した枠は消えます。よろしいですか？",
+              "額縁一覧を初期状態（ゴールドギャラリー・ローズソフト）に戻します。追加した枠は消えます。よろしいですか？",
             )
           ) {
             onResetDefaults();
